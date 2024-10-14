@@ -1,3 +1,4 @@
+import com.diffplug.gradle.spotless.BaseKotlinExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
@@ -52,6 +53,11 @@ compose.desktop {
 }
 
 configure<SpotlessExtension> {
+    fun BaseKotlinExtension.ktfmtConfigured() =
+        ktfmt().kotlinlangStyle().configure {
+            it.setManageTrailingCommas(true)
+            it.setMaxWidth(120)
+        }
     kotlin {
         target(
             fileTree(".") {
@@ -59,10 +65,10 @@ configure<SpotlessExtension> {
                 exclude("**/build/**")
             }
         )
-        ktfmt().kotlinlangStyle().configure { it.setManageTrailingCommas(true) }
+        ktfmtConfigured()
     }
     kotlinGradle {
         target("**/*.gradle.kts")
-        ktfmt().kotlinlangStyle().configure { it.setManageTrailingCommas(true) }
+        ktfmtConfigured()
     }
 }
