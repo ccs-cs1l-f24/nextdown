@@ -1,3 +1,5 @@
 package types
 
-data class VTDate(val year: Int, val month: Int, val dayOfMonth: Int) : ValueType
+import kotlinx.datetime.LocalDate
+
+data class VTDate(val value: LocalDate) : ValueType
