@@ -1,16 +1,10 @@
-import kotlin.time.Duration.Companion.minutes
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
 import model.Calendar
-import model.DTEndValue
-import model.DTStartValue
 import model.Event
-import types.VTCalAddress
-import types.VTDateTime
-import types.VTText
-import types.VTUri
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 
 val testCalendar =
@@ -19,20 +13,33 @@ val testCalendar =
         Calendar(
             listOf(
                 Event(
-                    dtStamp =
-                        VTDateTime(
-                            Instant.fromEpochMilliseconds(1727766000000)
-                                .toLocalDateTime(TimeZone.currentSystemDefault())
-                        ),
                     uid = "test1",
-                    dtStart = DTStartValue.DateTime(VTDateTime(ldt(now + 2.hours + 30.minutes))),
-                    dtEnd = DTEndValue.DateTime(VTDateTime(ldt(now + 3.hours))),
-                    organizer = VTCalAddress(VTUri("edwinchang@ucsb.edu")),
-                    status = VTText("CONFIRMED"),
-                    summary = VTText("Test event 1"),
-                    description = VTText("This is a test event! How exciting."),
-                    comment = VTText(""),
-                )
+                    dtStart = ldt(now + 2.hours),
+                    dtEnd = ldt(now + 3.hours),
+                    summary = "Test event 1",
+                    description = "This is a test event! How exciting.",
+                ),
+                Event(
+                    uid = "test2",
+                    dtStart = ldt(now - 2.days),
+                    dtEnd = ldt(now - 1.days),
+                    summary = "Test event 2",
+                    description = "This is a test event! How exciting.",
+                ),
+                Event(
+                    uid = "test3",
+                    dtStart = ldt(now + 1.days),
+                    dtEnd = ldt(now + 2.days),
+                    summary = "Test event 3",
+                    description = "This is a test event! How exciting.",
+                ),
+                Event(
+                    uid = "test4",
+                    dtStart = ldt(now + 2.days),
+                    dtEnd = ldt(now + 3.days),
+                    summary = "Test event 4",
+                    description = "This is a test event! How exciting.",
+                ),
             )
         )
     }
