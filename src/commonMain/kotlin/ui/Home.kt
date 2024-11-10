@@ -1,23 +1,29 @@
 package ui
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
@@ -87,19 +93,84 @@ fun HomePage() {
                 }
                 .let { (before, after) -> before to after.drop(1) to after.firstOrNull() }
         }
-
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxSize()) {
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Before:")
-                events.first.first.forEach { Text(it.uid) }
+        var scroll by remember { mutableFloatStateOf(0f) }
+        var range by remember { mutableStateOf(0..0) }
+        val nextEvent =
+            @Composable {
+                Card(modifier = Modifier.padding(8.dp)) { Text("base element", modifier = Modifier.padding(24.dp)) }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("Next:")
-                events.second?.let { Text(it.uid) }
+        val eventsBefore =
+            @Composable {
+                repeat(5) {
+                    OutlinedCard(modifier = Modifier.padding(8.dp)) {
+                        Text("before: element $it", modifier = Modifier.padding(24.dp))
+                    }
+                }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                Text("After:")
-                events.first.second.forEach { Text(it.uid) }
+        val eventsAfter =
+            @Composable {
+                repeat(10) {
+                    OutlinedCard(modifier = Modifier.padding(8.dp)) {
+                        Text("after: element $it", modifier = Modifier.padding(24.dp))
+                    }
+                }
+            }
+        SubcomposeLayout(
+            modifier =
+                Modifier.fillMaxSize()
+                    .scrollable(
+                        rememberScrollableState { delta ->
+                            val old = scroll
+                            scroll = (scroll + delta).coerceIn(range.first.toFloat()..range.last.toFloat())
+                            scroll - old
+                        },
+                        orientation = Orientation.Vertical,
+                    )
+        ) { constraints ->
+            var slotId = 0
+            val nextEventHeight = subcompose(++slotId) { nextEvent() }.first().measure(Constraints()).height
+            val nextEventFinalHeight =
+                (scroll / constraints.maxHeight *
+                        (0.5f * constraints.maxHeight - nextEventHeight) *
+                        (if (scroll <= 0) 1 else -1) + 0.5f * constraints.maxHeight)
+                    .roundToInt()
+                    .coerceAtLeast(0)
+            val nextEventPlaceable =
+                subcompose(++slotId) { nextEvent() }
+                    .first()
+                    .measure(
+                        Constraints(
+                            minWidth = constraints.maxWidth,
+                            maxWidth = constraints.maxWidth,
+                            minHeight = nextEventFinalHeight,
+                            maxHeight = nextEventFinalHeight,
+                        )
+                    )
+            val eventsBeforePlaceables =
+                subcompose(++slotId) { eventsBefore() }
+                    .map { it.measure(Constraints(minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth)) }
+            val eventsAfterPlaceables =
+                subcompose(++slotId) { eventsAfter() }
+                    .map { it.measure(Constraints(minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth)) }
+            range = -eventsAfterPlaceables.sumOf { it.height }..eventsBeforePlaceables.sumOf { it.height }
+            layout(width = constraints.maxWidth, height = constraints.maxHeight) {
+                nextEventPlaceable.place(
+                    0,
+                    ((if (scroll <= 0)
+                            scroll / constraints.maxHeight * (0.25f * constraints.maxHeight + nextEventHeight)
+                        else scroll * 0.75f) + 0.25f * constraints.maxHeight)
+                        .roundToInt(),
+                )
+                var y = scroll.roundToInt()
+                eventsBeforePlaceables.asReversed().forEach {
+                    y -= it.height
+                    it.place(0, y)
+                }
+                y = constraints.maxHeight + scroll.roundToInt()
+                eventsAfterPlaceables.forEach {
+                    it.place(0, y)
+                    y += it.height
+                }
             }
         }
     }
