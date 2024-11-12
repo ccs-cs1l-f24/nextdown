@@ -33,7 +33,10 @@ kotlin {
 
 dependencies { kspCommonMainMetadata(libs.arrow.optics.ksp) }
 
-compose.resources { packageOfResClass = "resources" }
+compose.resources {
+    packageOfResClass = "resources"
+    publicResClass = true
+}
 
 compose.desktop {
     application {

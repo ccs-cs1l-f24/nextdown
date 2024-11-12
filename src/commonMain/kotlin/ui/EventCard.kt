@@ -23,8 +23,14 @@ import model.Event
 import theme.JetBrainsMono
 
 @Composable
-fun EventCard(event: Event, currentTimeMs: Long, emphasisState: Float = 0f, modifier: Modifier = Modifier) {
-    Card(modifier = modifier.padding(16.dp)) {
+fun EventCard(
+    event: Event,
+    currentTimeMs: Long,
+    emphasisState: Float = 0f,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(onClick = onClick, modifier = modifier.padding(16.dp)) {
         if (emphasisState < 0.6) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,

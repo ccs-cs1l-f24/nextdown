@@ -1,10 +1,31 @@
 package ui
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberScrollableState
 import androidx.compose.foundation.gestures.scrollable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,29 +38,32 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
-import kotlin.math.abs
-import kotlin.math.roundToInt
-import kotlin.time.Duration.Companion.days
-import kotlin.time.Duration.Companion.hours
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
 import model.Calendar
-import model.Event
+import org.jetbrains.compose.resources.vectorResource
+import resources.Res
+import resources.ic_add
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 @Composable
 fun HomePage() {
     Surface(modifier = Modifier.fillMaxSize()) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val appOpened = remember { Clock.System.now() }
+            val density = LocalDensity.current
+            var dialog: Dialog? by rememberSaveable { mutableStateOf(null) }
             var currentTimeMs by rememberSaveable { mutableLongStateOf(Clock.System.now().toEpochMilliseconds()) }
             LaunchedEffect(true) {
                 currentTimeMs = Clock.System.now().toEpochMilliseconds()
@@ -48,71 +72,7 @@ fun HomePage() {
                     currentTimeMs = Clock.System.now().toEpochMilliseconds()
                 }
             }
-            fun ldt(instant: Instant) = instant.toLocalDateTime(TimeZone.currentSystemDefault())
-            var calendar by remember {
-                mutableStateOf(
-                    Calendar(
-                        buildList {
-                            add(
-                                Event(
-                                    uid = "test2",
-                                    dtStart = ldt(appOpened + 3.seconds),
-                                    dtEnd = ldt(appOpened + 3.hours),
-                                    summary = "Test event 2",
-                                    description = "This is a test event! How exciting.",
-                                )
-                            )
-                            add(
-                                Event(
-                                    uid = "test1",
-                                    dtStart = ldt(appOpened - 2.days),
-                                    dtEnd = ldt(appOpened - 1.days),
-                                    summary = "Test event 1",
-                                    description = "This is a test event! How exciting.",
-                                )
-                            )
-                            add(
-                                Event(
-                                    uid = "test3",
-                                    dtStart = ldt(appOpened + 1.days),
-                                    dtEnd = ldt(appOpened + 2.days),
-                                    summary = "Test event 3",
-                                    description = "This is a test event! How exciting.",
-                                )
-                            )
-                            add(
-                                Event(
-                                    uid = "test4",
-                                    dtStart = ldt(appOpened + 2.days),
-                                    dtEnd = ldt(appOpened + 3.days),
-                                    summary = "Test event 4",
-                                    description = "This is a test event! How exciting.",
-                                )
-                            )
-                            repeat(10) {
-                                add(
-                                    Event(
-                                        uid = "before$it",
-                                        dtStart = ldt(appOpened - it.minutes * 1000),
-                                        dtEnd = ldt(appOpened),
-                                        summary = "Before $it",
-                                        description = "This event happened already!",
-                                    )
-                                )
-                                add(
-                                    Event(
-                                        uid = "after$it",
-                                        dtStart = ldt(appOpened + it.minutes * 500),
-                                        dtEnd = ldt(appOpened + it.minutes * 600),
-                                        summary = "After $it",
-                                        description = "This event is upcoming!",
-                                    )
-                                )
-                            }
-                        }
-                    )
-                )
-            }
+            var calendar by remember { mutableStateOf(Calendar(emptyList())) }
             val events by derivedStateOf {
                 calendar.events
                     .sortedBy { it.dtStart }
@@ -123,13 +83,30 @@ fun HomePage() {
             }
             var scroll by remember { mutableFloatStateOf(0f) }
             var range by remember { mutableStateOf(0..0) }
+            LaunchedEffect(range) { scroll = scroll.coerceIn(range.first.toFloat()..range.last.toFloat()) }
             val nextEvent =
                 @Composable {
-                    events.second?.let { EventCard(it, currentTimeMs, 1 - abs(scroll / constraints.maxHeight)) }
-                        ?: Text("No upcoming events")
+                    events.second?.let {
+                        EventCard(
+                            it,
+                            currentTimeMs,
+                            1 - abs(scroll / constraints.maxHeight),
+                            onClick = { dialog = Dialog.EditEvent(it.uid) },
+                        )
+                    } ?: Box(contentAlignment = Alignment.Center) { Text("No upcoming events. Try creating one!") }
                 }
-            val eventsBefore = @Composable { events.first.first.forEach { EventCard(it, currentTimeMs, 0f) } }
-            val eventsAfter = @Composable { events.first.second.forEach { EventCard(it, currentTimeMs, 0f) } }
+            val eventsBefore =
+                @Composable {
+                    events.first.first.forEach {
+                        EventCard(it, currentTimeMs, 0f, onClick = { dialog = Dialog.EditEvent(it.uid) })
+                    }
+                }
+            val eventsAfter =
+                @Composable {
+                    events.first.second.forEach {
+                        EventCard(it, currentTimeMs, 0f, onClick = { dialog = Dialog.EditEvent(it.uid) })
+                    }
+                }
             SubcomposeLayout(
                 modifier =
                     Modifier.fillMaxSize()
@@ -171,7 +148,11 @@ fun HomePage() {
                         .map {
                             it.measure(Constraints(minWidth = constraints.maxWidth, maxWidth = constraints.maxWidth))
                         }
-                range = -eventsAfterPlaceables.sumOf { it.height }..eventsBeforePlaceables.sumOf { it.height }
+                range =
+                    (-eventsAfterPlaceables.sumOf { it.height } -
+                        with(density) {
+                            (if (eventsAfterPlaceables.isNotEmpty()) 80 else 0).dp.roundToPx()
+                        })..eventsBeforePlaceables.sumOf { it.height }
                 layout(width = constraints.maxWidth, height = constraints.maxHeight) {
                     nextEventPlaceable.place(
                         0,
@@ -189,6 +170,84 @@ fun HomePage() {
                     eventsAfterPlaceables.forEach {
                         it.place(0, y)
                         y += it.height
+                    }
+                }
+            }
+            ExtendedFloatingActionButton(
+                text = { Text("New event", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                icon = { Icon(vectorResource(Res.drawable.ic_add), null) },
+                onClick = { dialog = Dialog.CreateEvent },
+                modifier =
+                    Modifier.align(Alignment.BottomEnd).windowInsetsPadding(WindowInsets.systemBars).padding(16.dp),
+            )
+            AnimatedVisibility(dialog != null, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier =
+                        Modifier.fillMaxSize()
+                            .alpha(0.75f)
+                            .background(MaterialTheme.colorScheme.surfaceDim)
+                            .pointerInput(true) {
+                                detectTapGestures { dialog = null }
+                                detectDragGestures(
+                                    onDragEnd = { dialog = null },
+                                    onDragCancel = { dialog = null },
+                                    onDrag = { _, _ -> },
+                                )
+                            }
+                )
+            }
+            AnimatedContent(
+                targetState = dialog,
+                transitionSpec = {
+                    fadeIn(tween(200)) + slideInVertically { it / 16 } togetherWith
+                        fadeOut(tween(200)) + slideOutVertically { -it / 8 }
+                },
+                modifier = Modifier.fillMaxSize(),
+            ) { targetDialog ->
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    if (targetDialog != null) {
+                        Card(
+                            shape = MaterialTheme.shapes.large,
+                            colors =
+                                CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+                                ),
+                            modifier = Modifier.windowInsetsPadding(WindowInsets.systemBars).padding(8.dp),
+                        ) {
+                            when (targetDialog) {
+                                Dialog.CreateEvent ->
+                                    CreateEventDialog(
+                                        onClose = { dialog = null },
+                                        onCreateEvent = { calendar = calendar.copy(events = calendar.events + it) },
+                                    )
+                                is Dialog.EditEvent ->
+                                    EditEventDialog(
+                                        event = calendar.events.first { it.uid == targetDialog.uid },
+                                        onUpdateEvent = { editedEvent ->
+                                            calendar =
+                                                calendar.copy(
+                                                    events =
+                                                        calendar.events.map {
+                                                            if (it.uid == editedEvent.uid) editedEvent else it
+                                                        }
+                                                )
+                                        },
+                                        onDelete = { dialog = Dialog.ConfirmDeleteEvent(it.uid) },
+                                        onClose = { dialog = null },
+                                    )
+                                is Dialog.ConfirmDeleteEvent ->
+                                    ConfirmDeleteEventDialog(
+                                        event = remember { calendar.events.first { it.uid == targetDialog.uid } },
+                                        onDelete = { event ->
+                                            calendar =
+                                                calendar.copy(
+                                                    events = calendar.events.filterNot { it.uid == event.uid }
+                                                )
+                                        },
+                                        onClose = { dialog = null },
+                                    )
+                            }
+                        }
                     }
                 }
             }
