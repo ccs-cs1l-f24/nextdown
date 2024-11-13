@@ -35,16 +35,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import java.time.format.DateTimeFormatter
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 import kotlinx.datetime.Clock
 import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.Padding
+import kotlinx.datetime.format.char
 import kotlinx.datetime.toInstant
-import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toLocalDateTime
 import model.Event
 import org.jetbrains.compose.resources.vectorResource
@@ -260,10 +262,26 @@ private fun EventEditing(state: Event, setState: (Event) -> Unit, modifier: Modi
             onValueChange = { setState(state.copy(description = it.takeIf { it.isNotBlank() })) },
             label = { Text("Description") },
         )
+        val dateFormat =
+            LocalDateTime.Format {
+                monthNumber(padding = Padding.NONE)
+                char('/')
+                dayOfMonth(padding = Padding.NONE)
+                char('/')
+                year()
+            }
+        val timeFormat =
+            LocalDateTime.Format {
+                amPmHour(padding = Padding.NONE)
+                char(':')
+                minute()
+                char(' ')
+                amPmMarker("AM", "PM")
+            }
         Text("Start", style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
         var showStartDatePicker by rememberSaveable { mutableStateOf(false) }
         Text(
-            state.dtStart.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("M/d/yy")),
+            state.dtStart.format(dateFormat),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (showStartDatePicker) FontWeight.Bold else FontWeight.Normal,
             maxLines = 1,
@@ -280,7 +298,7 @@ private fun EventEditing(state: Event, setState: (Event) -> Unit, modifier: Modi
         if (showStartDatePicker) DatePicker(startDatePickerState)
         var showStartTimePicker by rememberSaveable { mutableStateOf(false) }
         Text(
-            state.dtStart.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("h:mm a")),
+            state.dtStart.format(timeFormat),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (showStartTimePicker) FontWeight.Bold else FontWeight.Normal,
             maxLines = 1,
@@ -312,7 +330,7 @@ private fun EventEditing(state: Event, setState: (Event) -> Unit, modifier: Modi
         Text("End", style = MaterialTheme.typography.titleSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
         var showEndDatePicker by rememberSaveable { mutableStateOf(false) }
         Text(
-            state.dtEnd.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("M/d/yy")),
+            state.dtEnd.format(dateFormat),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (showEndDatePicker) FontWeight.Bold else FontWeight.Normal,
             maxLines = 1,
@@ -329,7 +347,7 @@ private fun EventEditing(state: Event, setState: (Event) -> Unit, modifier: Modi
         if (showEndDatePicker) DatePicker(endDatePickerState)
         var showEndTimePicker by rememberSaveable { mutableStateOf(false) }
         Text(
-            state.dtEnd.toJavaLocalDateTime().format(DateTimeFormatter.ofPattern("h:mm a")),
+            state.dtEnd.format(timeFormat),
             style = MaterialTheme.typography.bodyLarge,
             fontWeight = if (showEndTimePicker) FontWeight.Bold else FontWeight.Normal,
             maxLines = 1,

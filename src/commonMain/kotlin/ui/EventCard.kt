@@ -20,7 +20,7 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import model.Event
-import theme.JetBrainsMono
+import theme.LocalFontFamilies
 
 @Composable
 fun EventCard(
@@ -82,7 +82,7 @@ fun Countdown(time: Instant, currentTimeMs: Long, fontSize: TextUnit = 36.sp, mo
             }
         },
         fontSize = fontSize,
-        fontFamily = JetBrainsMono,
+        fontFamily = LocalFontFamilies.current.mono,
         modifier = modifier,
     )
 }

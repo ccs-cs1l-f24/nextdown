@@ -2,39 +2,17 @@ package theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import org.jetbrains.compose.resources.Font
-import resources.*
 
-val Inter
-    @Composable
-    get() =
-        FontFamily(
-            Font(Res.font.inter_regular, weight = FontWeight.Normal),
-            Font(Res.font.inter_bold, weight = FontWeight.Bold),
-            Font(Res.font.inter_semibold, weight = FontWeight.SemiBold),
-            Font(Res.font.inter_medium, weight = FontWeight.Medium),
-            Font(Res.font.inter_thin, weight = FontWeight.Thin),
-            Font(Res.font.inter_extralight, weight = FontWeight.ExtraLight),
-            Font(Res.font.inter_light, weight = FontWeight.Light),
-            Font(Res.font.inter_extrabold, weight = FontWeight.ExtraBold),
-            Font(Res.font.inter_black, weight = FontWeight.Black),
-        )
+data class FontFamilies(val regular: FontFamily, val mono: FontFamily)
 
-val JetBrainsMono
-    @Composable
-    get() =
-        FontFamily(
-            Font(Res.font.jbmono_regular, weight = FontWeight.Normal),
-            Font(Res.font.jbmono_bold, weight = FontWeight.Bold),
-            Font(Res.font.jbmono_semibold, weight = FontWeight.SemiBold),
-            Font(Res.font.jbmono_medium, weight = FontWeight.Medium),
-            Font(Res.font.jbmono_thin, weight = FontWeight.Thin),
-            Font(Res.font.jbmono_extralight, weight = FontWeight.ExtraLight),
-            Font(Res.font.jbmono_light, weight = FontWeight.Light),
-            Font(Res.font.jbmono_extrabold, weight = FontWeight.ExtraBold),
-        )
+val LocalFontFamilies = compositionLocalOf<FontFamilies> { error("font families not provided") }
+
+expect val Inter: FontFamily
+
+expect val JetBrainsMono: FontFamily
 
 @Composable
 fun getTypography(fontFamily: FontFamily) =

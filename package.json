@@ -1,0 +1,6 @@
+{
+  "name": "nextdown",
+  "devDependencies": {
+    "wrangler": "^3.86.1"
+  }
+}

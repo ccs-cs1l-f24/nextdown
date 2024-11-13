@@ -1,6 +1,8 @@
 import com.diffplug.gradle.spotless.BaseKotlinExtension
 import com.diffplug.gradle.spotless.SpotlessExtension
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.composeCompiler)
@@ -13,6 +15,20 @@ plugins {
 
 kotlin {
     jvm("desktop")
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        moduleName = "nextdown"
+        browser {
+            commonWebpackConfig {
+                outputFileName = "nextdown.js"
+                devServer =
+                    (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                        static = (static ?: mutableListOf()).apply { add(project.rootDir.path) }
+                    }
+            }
+        }
+        binaries.executable()
+    }
     @Suppress("unused")
     sourceSets {
         val commonMain by getting {
