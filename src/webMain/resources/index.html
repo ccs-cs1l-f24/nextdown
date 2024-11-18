@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>NextDown</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="darkreader-lock" />
+        <style>
+            body {
+                background: white;
+                color: black;
+            }
+            @media (prefers-color-scheme: dark) {
+                body {
+                    background: black;
+                    color: white;
+                }
+            }
+        </style>
+    </head>
+    <body style="overflow: clip">
+        <canvas id="app" style="width: 0; height: 0"></canvas>
+        <script type="application/javascript">
+            function script(src) {
+                const e = document.createElement("script");
+                e.src = src;
+                document.body.appendChild(e);
+            }
+            if (navigator.userAgent.indexOf("AppleWebKit") == -1) {
+                script("nextdown-wasm.js");
+            } else {
+                script("skiko.js");
+                script("nextdown-js.js");
+            }
+        </script>
+    </body>
+</html>

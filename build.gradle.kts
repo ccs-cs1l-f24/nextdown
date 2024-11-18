@@ -17,16 +17,21 @@ kotlin {
     jvm("desktop")
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "nextdown"
+        moduleName = "nextdown-wasm"
         browser {
             commonWebpackConfig {
-                outputFileName = "nextdown.js"
+                outputFileName = "nextdown-wasm.js"
                 devServer =
                     (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                         static = (static ?: mutableListOf()).apply { add(project.rootDir.path) }
                     }
             }
         }
+        binaries.executable()
+    }
+    js {
+        moduleName = "nextdown-js"
+        browser { commonWebpackConfig { outputFileName = "nextdown-js.js" } }
         binaries.executable()
     }
     @Suppress("unused")
@@ -44,7 +49,30 @@ kotlin {
             }
         }
         val desktopMain by getting { dependencies { implementation(compose.desktop.currentOs) } }
+        val webMain by creating { dependsOn(commonMain) }
+        val wasmJsMain by getting { dependsOn(webMain) }
+        val jsMain by getting { dependsOn(webMain) }
     }
+}
+
+tasks.register<Copy>("webDev") {
+    val wasmTask = tasks.getByPath(":wasmJsBrowserDevelopmentExecutableDistribution")
+    val jsTask = tasks.getByPath(":jsBrowserDevelopmentExecutableDistribution")
+    dependsOn(wasmTask)
+    dependsOn(jsTask)
+    from(wasmTask.outputs, jsTask.outputs)
+    into(project.layout.buildDirectory.dir("dist/web/dev"))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.register<Copy>("webProd") {
+    val wasmTask = tasks.getByPath(":wasmJsBrowserDistribution")
+    val jsTask = tasks.getByPath(":jsBrowserDistribution")
+    dependsOn(wasmTask)
+    dependsOn(jsTask)
+    from(wasmTask.outputs, jsTask.outputs)
+    into(project.layout.buildDirectory.dir("dist/web/prod"))
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 dependencies { kspCommonMainMetadata(libs.arrow.optics.ksp) }

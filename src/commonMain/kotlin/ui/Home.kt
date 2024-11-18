@@ -59,8 +59,8 @@ import kotlin.math.abs
 import kotlin.math.roundToInt
 
 @Composable
-fun HomePage() {
-    Surface(modifier = Modifier.fillMaxSize()) {
+fun HomePage(modifier: Modifier = Modifier) {
+    Surface(modifier = modifier.fillMaxSize()) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val density = LocalDensity.current
             var dialog: Dialog? by rememberSaveable { mutableStateOf(null) }
