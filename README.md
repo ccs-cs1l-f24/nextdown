@@ -25,7 +25,12 @@ Open the project in your IDE, and the Gradle project should be detected.
 
 First, clone the repo:
 
-<details open><summary>HTTPS</summary>
+<details open>
+<summary>
+
+**HTTPS**
+
+</summary>
 
 ```sh
 git clone https://github.com/ccs-cs1l-f24/nextdown.git
@@ -33,7 +38,12 @@ git clone https://github.com/ccs-cs1l-f24/nextdown.git
 
 </details>
 
-<details><summary>SSH</summary>
+<details>
+<summary>
+
+**SSH**
+
+</summary>
 
 ```sh
 git@github.com:ccs-cs1l-f24/nextdown.git
@@ -41,7 +51,12 @@ git@github.com:ccs-cs1l-f24/nextdown.git
 
 </details>
 
-<details><summary>GitHub CLI</summary>
+<details>
+<summary>
+
+**GitHub CLI**
+
+</summary>
 
 ```sh
 gh repo clone ccs-cs1l-f24/nextdown
@@ -59,7 +74,12 @@ Then, you can build the app for desktop or web.
 You can only build the desktop app for the platform you're on,
 either Windows or a Debian-based Linux distro.
 
-<details open><summary>Linux (Debian-based)</summary>
+<details open>
+<summary>
+
+**Linux (Debian-based)**
+
+</summary>
 
 To build a `.deb`:
 
@@ -79,7 +99,12 @@ The `.deb` will be placed in `build/compose/binaries/main-release/deb/`.
 
 </details>
 
-<details><summary>Windows</summary>
+<details>
+<summary>
+
+**Windows**
+
+</summary>
 
 To build a `.exe`:
 
@@ -103,7 +128,12 @@ The `.exe` will be placed in `build\compose\binaries\main-release\exe\`.
 
 To build a distribution of the website:
 
-<details open><summary>macOS/Linux</summary>
+<details open>
+<summary>
+
+**macOS/Linux**
+
+</summary>
 
 ```sh
 ./gradlew webDev
@@ -113,7 +143,12 @@ The distribution will be located at `build/dist/web/dev/`.
 
 </details>
 
-<details><summary>Windows</summary>
+<details>
+<summary>
+
+**Windows**
+
+</summary>
 
 ```ps1
 .\gradlew.bat webDev
@@ -126,7 +161,12 @@ The distribution will be located at `build\dist\web\dev\`.
 You can also build a release distribution of the website,
 which takes longer but produces smaller assets:
 
-<details open><summary>macOS/Linux</summary>
+<details open>
+<summary>
+
+**macOS/Linux**
+
+</summary>
 
 ```sh
 ./gradlew webProd
@@ -136,7 +176,12 @@ The distribution will be located at `build/dist/web/prod/`.
 
 </details>
 
-<details><summary>Windows</summary>
+<details>
+<summary>
+
+**Windows**
+
+</summary>
 
 ```ps1
 .\gradlew.bat webProd
