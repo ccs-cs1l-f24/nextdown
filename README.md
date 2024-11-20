@@ -23,6 +23,11 @@ You can develop NextDown using [Android Studio](https://developer.android.com/st
 or [IntelliJ IDEA](https://www.jetbrains.com/idea/).
 Open the project in your IDE, and the Gradle project should be detected.
 
+To run the web app for development, run the `wasmJsBrowserDevelopmentRun` Gradle task
+(or `jsBrowserDevelopmentRun` if you use Safari).
+
+To run the desktop app for development, run the `run` Gradle task.
+
 ## Building
 
 First, clone the repo:
