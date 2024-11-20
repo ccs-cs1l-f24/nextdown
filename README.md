@@ -15,6 +15,8 @@ A new calendar app.
 
 NextDown currently targets **desktop** (Linux and Windows) and **web**. It's written in Kotlin and built with Gradle.
 
+**Check out the production deployment at [nextdown.edwinchang.dev](https://nextdown.edwinchang.dev).**
+
 ## Development
 
 You can develop NextDown using [Android Studio](https://developer.android.com/studio)
