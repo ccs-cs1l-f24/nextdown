@@ -47,19 +47,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
+import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
-import model.Calendar
+import model.AppState
 import org.jetbrains.compose.resources.vectorResource
 import resources.Res
 import resources.ic_add
-import kotlin.math.abs
-import kotlin.math.roundToInt
 
 @Composable
-fun HomePage(modifier: Modifier = Modifier) {
+fun HomePage(appState: AppState, setAppState: (AppState) -> Unit, modifier: Modifier = Modifier) {
     Surface(modifier = modifier.fillMaxSize()) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val density = LocalDensity.current
@@ -72,9 +72,8 @@ fun HomePage(modifier: Modifier = Modifier) {
                     currentTimeMs = Clock.System.now().toEpochMilliseconds()
                 }
             }
-            var calendar by remember { mutableStateOf(Calendar(emptyList())) }
             val events by derivedStateOf {
-                calendar.events
+                appState.calendar.events
                     .sortedBy { it.dtStart }
                     .partition {
                         it.dtStart.toInstant(TimeZone.currentSystemDefault()).toEpochMilliseconds() < currentTimeMs
@@ -218,31 +217,50 @@ fun HomePage(modifier: Modifier = Modifier) {
                                 Dialog.CreateEvent ->
                                     CreateEventDialog(
                                         onClose = { dialog = null },
-                                        onCreateEvent = { calendar = calendar.copy(events = calendar.events + it) },
+                                        onCreateEvent = {
+                                            setAppState(
+                                                appState.copy(
+                                                    calendar =
+                                                        appState.calendar.copy(events = appState.calendar.events + it)
+                                                )
+                                            )
+                                        },
                                     )
                                 is Dialog.EditEvent ->
                                     EditEventDialog(
-                                        event = calendar.events.first { it.uid == targetDialog.uid },
+                                        event = appState.calendar.events.first { it.uid == targetDialog.uid },
                                         onUpdateEvent = { editedEvent ->
-                                            calendar =
-                                                calendar.copy(
-                                                    events =
-                                                        calendar.events.map {
-                                                            if (it.uid == editedEvent.uid) editedEvent else it
-                                                        }
+                                            setAppState(
+                                                appState.copy(
+                                                    calendar =
+                                                        appState.calendar.copy(
+                                                            events =
+                                                                appState.calendar.events.map {
+                                                                    if (it.uid == editedEvent.uid) editedEvent else it
+                                                                }
+                                                        )
                                                 )
+                                            )
                                         },
                                         onDelete = { dialog = Dialog.ConfirmDeleteEvent(it.uid) },
                                         onClose = { dialog = null },
                                     )
                                 is Dialog.ConfirmDeleteEvent ->
                                     ConfirmDeleteEventDialog(
-                                        event = remember { calendar.events.first { it.uid == targetDialog.uid } },
+                                        event =
+                                            remember { appState.calendar.events.first { it.uid == targetDialog.uid } },
                                         onDelete = { event ->
-                                            calendar =
-                                                calendar.copy(
-                                                    events = calendar.events.filterNot { it.uid == event.uid }
+                                            setAppState(
+                                                appState.copy(
+                                                    calendar =
+                                                        appState.calendar.copy(
+                                                            events =
+                                                                appState.calendar.events.filterNot {
+                                                                    it.uid == event.uid
+                                                                }
+                                                        )
                                                 )
+                                            )
                                         },
                                         onClose = { dialog = null },
                                     )
