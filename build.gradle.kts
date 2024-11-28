@@ -5,6 +5,7 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
+    alias(libs.plugins.android)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeJB)
     alias(libs.plugins.kotlinMultiplatform)
@@ -14,6 +15,7 @@ plugins {
 }
 
 kotlin {
+    androidTarget()
     jvm("desktop")
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
@@ -48,6 +50,10 @@ kotlin {
                 implementation(libs.arrow.optics)
             }
         }
+        androidMain.dependencies {
+            implementation(libs.activity)
+            implementation(libs.splashscreen)
+        }
         val desktopMain by getting { dependencies { implementation(compose.desktop.currentOs) } }
         val webMain by creating { dependsOn(commonMain) }
         val wasmJsMain by getting { dependsOn(webMain) }
@@ -80,6 +86,33 @@ dependencies { kspCommonMainMetadata(libs.arrow.optics.ksp) }
 compose.resources {
     packageOfResClass = "resources"
     publicResClass = true
+}
+
+android {
+    compileSdk = 34
+    namespace = "dev.edwinchang.nextdown"
+    defaultConfig {
+        applicationId = "dev.edwinchang.nextdown"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "0.0.1"
+        vectorDrawables { useSupportLibrary = true }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            signingConfig = signingConfigs.findByName("debug")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlin { jvmToolchain(17) }
+    packaging { resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" } }
 }
 
 compose.desktop {
