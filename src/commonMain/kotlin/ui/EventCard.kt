@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,6 +24,8 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toInstant
 import model.Event
 import theme.LocalFontFamilies
+import kotlin.math.roundToInt
+import kotlin.time.DurationUnit
 
 @Composable
 fun EventCard(
@@ -63,6 +68,16 @@ fun EventCard(
 @Composable
 fun Countdown(time: Instant, currentTimeMs: Long, fontSize: TextUnit = 36.sp, modifier: Modifier = Modifier) {
     val currentTime = Instant.fromEpochMilliseconds(currentTimeMs)
+    val colorAmount =
+        ((time - currentTime).toDouble(DurationUnit.MILLISECONDS) / (1000 * 60 * 60 * 2)).coerceIn(0.0, 1.0)
+    val coloredTextColor =
+        Color(
+                red = (255 * (1 - colorAmount)).roundToInt(),
+                green = (255 * colorAmount).roundToInt(),
+                blue = 0,
+                alpha = 128,
+            )
+            .compositeOver(LocalContentColor.current)
     Text(
         (if (time > currentTime) time - currentTime else currentTime - time).toComponents {
             days,
@@ -83,6 +98,7 @@ fun Countdown(time: Instant, currentTimeMs: Long, fontSize: TextUnit = 36.sp, mo
         },
         fontSize = fontSize,
         fontFamily = LocalFontFamilies.current.mono,
+        color = if (time > currentTime) coloredTextColor else LocalContentColor.current,
         modifier = modifier,
     )
 }
